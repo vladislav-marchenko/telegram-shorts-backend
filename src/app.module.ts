@@ -4,6 +4,7 @@ import { ConfigModule } from '@nestjs/config'
 import { AppController } from './app.controller'
 import { AppService } from './app.service'
 import { User, UserSchema } from './schemas/user.schema'
+import { UserModule } from './user/user.module'
 
 @Module({
   imports: [
@@ -12,6 +13,7 @@ import { User, UserSchema } from './schemas/user.schema'
       `mongodb+srv://${process.env.MONGODB_USER}:${process.env.MONGODB_PASSWORD}@cluster0.v5ypq4y.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0`,
     ),
     MongooseModule.forFeature([{ name: User.name, schema: UserSchema }]),
+    UserModule,
   ],
   controllers: [AppController],
   providers: [AppService],

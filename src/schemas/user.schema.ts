@@ -15,6 +15,9 @@ export class User {
   displayName: string
 
   @Prop({ required: true })
+  photoURL: string
+
+  @Prop({ required: true })
   createdAt: Date
 }
 
