@@ -1,13 +1,14 @@
 import { BadRequestException, Injectable } from '@nestjs/common'
 import { InjectModel } from '@nestjs/mongoose'
-import { isValidObjectId, Model, ObjectId, Types } from 'mongoose'
+import { isValidObjectId, Model, Types } from 'mongoose'
 import { User } from 'src/schemas/user.schema'
+import { UpdateProfileDto } from './user.dto'
 
 @Injectable()
 export class UserService {
   constructor(@InjectModel(User.name) private userModel: Model<User>) {}
 
-  async getMe(id: ObjectId) {
+  async getMe(id: Types.ObjectId) {
     if (!isValidObjectId(id)) {
       throw new BadRequestException('Invalid user ID format.')
     }
@@ -18,5 +19,23 @@ export class UserService {
     }
 
     return user
+  }
+
+  async updateProfileInfo(id: Types.ObjectId, newData: UpdateProfileDto) {
+    if ('telegramId' in newData) {
+      throw new BadRequestException('Cannot update telegramId.')
+    }
+
+    const user = await this.userModel.findOne({ username: newData.username })
+    if (user && !user._id.equals(id)) {
+      throw new BadRequestException('Username is already taken.')
+    }
+
+    const updatedUser = await this.userModel.findByIdAndUpdate(
+      { _id: id },
+      { $set: newData },
+      { new: true },
+    )
+    return updatedUser
   }
 }

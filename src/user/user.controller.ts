@@ -1,8 +1,10 @@
 import {
   BadRequestException,
+  Body,
   Controller,
   Get,
   InternalServerErrorException,
+  Patch,
   Req,
   UseGuards,
 } from '@nestjs/common'
@@ -10,6 +12,7 @@ import { UserService } from './user.service'
 import { AuthGuard } from 'src/auth/auth.guard'
 import { Request } from 'express'
 import { Types } from 'mongoose'
+import { UpdateProfileDto } from './user.dto'
 
 @Controller('user')
 export class UserController {
@@ -18,15 +21,17 @@ export class UserController {
   @Get('me')
   @UseGuards(AuthGuard)
   getMe(@Req() request: Request) {
-    try {
-      const user = request['user']
-      return this.userService.getMe(user._id)
-    } catch (error) {
-      if (error instanceof BadRequestException) {
-        throw error
-      }
+    const user = request['user']
+    return this.userService.getMe(user._id)
+  }
 
-      throw new InternalServerErrorException('Something went wrong.')
-    }
+  @Patch()
+  @UseGuards(AuthGuard)
+  updateProfileInfo(
+    @Req() request: Request,
+    @Body() newData: UpdateProfileDto,
+  ) {
+    const user = request['user']
+    return this.userService.updateProfileInfo(user._id, newData)
   }
 }

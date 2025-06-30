@@ -27,6 +27,7 @@
     "@nestjs/mongoose": "^11.0.3",
     "@nestjs/platform-express": "^10.0.0",
     "@telegram-apps/init-data-node": "^2.0.10",
+    "class-validator": "^0.14.2",
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.16.1",
     "reflect-metadata": "^0.2.0",
