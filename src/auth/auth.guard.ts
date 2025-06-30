@@ -15,7 +15,7 @@ export class AuthGuard implements CanActivate {
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const request = context.switchToHttp().getRequest()
-    const initData = request.body
+    const initData = request.body.initData
 
     const isInitDataValid = isValid(initData, process.env.BOT_TOKEN)
     if (!isInitDataValid) {
