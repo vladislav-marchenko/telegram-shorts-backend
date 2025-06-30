@@ -8,12 +8,16 @@ import { UpdateProfileDto } from './user.dto'
 export class UserService {
   constructor(@InjectModel(User.name) private userModel: Model<User>) {}
 
-  async getMe(id: Types.ObjectId) {
+  async getUser(id: Types.ObjectId) {
     if (!isValidObjectId(id)) {
       throw new BadRequestException('Invalid user ID format.')
     }
 
-    const user = await this.userModel.findById(id)
+    const user = await this.userModel.findById(id, {
+      telegramId: 0,
+      createdAt: 0,
+      __v: 0,
+    })
     if (!user) {
       throw new BadRequestException('No user found with the given ID.')
     }

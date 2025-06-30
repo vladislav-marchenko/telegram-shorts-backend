@@ -1,9 +1,8 @@
 import {
-  BadRequestException,
   Body,
   Controller,
   Get,
-  InternalServerErrorException,
+  Param,
   Patch,
   Req,
   UseGuards,
@@ -18,11 +17,11 @@ import { UpdateProfileDto } from './user.dto'
 export class UserController {
   constructor(private readonly userService: UserService) {}
 
-  @Get('me')
+  @Get(':id')
   @UseGuards(AuthGuard)
-  getMe(@Req() request: Request) {
-    const user = request['user']
-    return this.userService.getMe(user._id)
+  getMe(@Req() request: Request, @Param('id') id: string) {
+    const userId = id === 'me' ? request['user']._id : new Types.ObjectId(id)
+    return this.userService.getUser(userId)
   }
 
   @Patch()
