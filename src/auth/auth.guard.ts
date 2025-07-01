@@ -8,6 +8,7 @@ import { InjectModel } from '@nestjs/mongoose'
 import { isValid, parse } from '@telegram-apps/init-data-node'
 import { Model } from 'mongoose'
 import { User, UserDocument } from 'src/schemas/user.schema'
+import { generateUsername } from 'unique-username-generator'
 
 @Injectable()
 export class AuthGuard implements CanActivate {
@@ -34,7 +35,7 @@ export class AuthGuard implements CanActivate {
     if (!user) {
       user = await this.userModel.create({
         telegramId: id,
-        username: username,
+        username: username || generateUsername(),
         displayName: first_name,
         photoURL: photo_url,
         createdAt: new Date(),
