@@ -20,7 +20,7 @@ export class S3Service {
 
   async uploadFile(file: Express.Multer.File, folder = 'videos') {
     const extension = path.extname(file.originalname)
-    const key = `${folder}/${uuid()}${extension}`
+    const key = folder + '/' + uuid() + extension
 
     const params: PutObjectCommandInput = {
       Bucket: process.env.S3_BUCKET_NAME,
