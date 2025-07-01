@@ -10,9 +10,8 @@ import {
 } from '@nestjs/common'
 import { UserService } from './user.service'
 import { AuthGuard } from 'src/auth/auth.guard'
-import { Request } from 'express'
 import { isValidObjectId, Types } from 'mongoose'
-import { UpdateProfileDto } from './user.dto'
+import { UpdateProfileDto } from './dto/update-user.dto'
 import { AuthRequest } from 'src/types'
 
 @Controller('user')

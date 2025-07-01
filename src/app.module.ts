@@ -5,6 +5,7 @@ import { AppController } from './app.controller'
 import { AppService } from './app.service'
 import { User, UserSchema } from './schemas/user.schema'
 import { UserModule } from './user/user.module'
+import { VideoModule } from './video/video.module';
 
 @Module({
   imports: [
@@ -14,6 +15,7 @@ import { UserModule } from './user/user.module'
     ),
     MongooseModule.forFeature([{ name: User.name, schema: UserSchema }]),
     UserModule,
+    VideoModule,
   ],
   controllers: [AppController],
   providers: [AppService],
