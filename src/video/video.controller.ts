@@ -3,40 +3,48 @@ import {
   Get,
   Post,
   Body,
-  Patch,
   Param,
   Delete,
+  Query,
+  Request,
+  UseGuards,
+  UseInterceptors,
+  UploadedFile,
 } from '@nestjs/common'
 import { VideoService } from './video.service'
-import { CreateVideoDto } from './dto/create-video.dto'
-import { UpdateVideoDto } from './dto/update-video.dto'
+import { UploadVideoDto } from './dto/upload-video.dto'
+import { AuthRequest } from 'src/types'
+import { AuthGuard } from 'src/auth/auth.guard'
+import { FileInterceptor } from '@nestjs/platform-express'
+import { videoMulterOptions } from 'src/helpers/multer'
 
 @Controller('video')
 export class VideoController {
   constructor(private readonly videoService: VideoService) {}
 
   @Post()
-  create(@Body() createVideoDto: CreateVideoDto) {
-    return this.videoService.create(createVideoDto)
+  @UseGuards(AuthGuard)
+  @UseInterceptors(FileInterceptor('media', videoMulterOptions()))
+  upload(
+    @UploadedFile() media: Express.Multer.File,
+    @Body() uploadVideoDto: UploadVideoDto,
+    @Request() request: AuthRequest,
+  ) {
+    return this.videoService.uploadVideo(media, uploadVideoDto, request.user.id)
   }
 
-  @Get()
-  findAll() {
-    return this.videoService.findAll()
+  @Get('user/:id')
+  findUserVideos(@Param('id') id: string) {
+    return this.videoService.findUserVideos(id)
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.videoService.findOne(+id)
-  }
-
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateVideoDto: UpdateVideoDto) {
-    return this.videoService.update(+id, updateVideoDto)
+  find(@Param('id') id?: string) {
+    return this.videoService.findVideo(+id)
   }
 
   @Delete(':id')
   remove(@Param('id') id: string) {
-    return this.videoService.remove(+id)
+    return this.videoService.removeVideo(+id)
   }
 }

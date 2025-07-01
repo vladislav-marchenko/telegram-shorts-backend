@@ -1,26 +1,41 @@
 import { Injectable } from '@nestjs/common'
-import { CreateVideoDto } from './dto/create-video.dto'
-import { UpdateVideoDto } from './dto/update-video.dto'
+import { UploadVideoDto } from './dto/upload-video.dto'
+import { InjectModel } from '@nestjs/mongoose'
+import { Model, Types } from 'mongoose'
+import { Video } from 'src/schemas/video.schema'
+import { S3Service } from 'src/s3/s3.service'
 
 @Injectable()
 export class VideoService {
-  create(createVideoDto: CreateVideoDto) {
-    return 'This action adds a new video'
+  constructor(
+    @InjectModel(Video.name) private videoModel: Model<Video>,
+    private s3Service: S3Service,
+  ) {}
+
+  async uploadVideo(
+    media: Express.Multer.File,
+    uploadVideoDto: UploadVideoDto,
+    userId: Types.ObjectId,
+  ) {
+    const url = await this.s3Service.uploadFile(media)
+    const video = await this.videoModel.create({
+      title: uploadVideoDto.title,
+      url,
+      userId,
+    })
+
+    return video
   }
 
-  findAll() {
-    return `This action returns all video`
-  }
-
-  findOne(id: number) {
+  findVideo(id: number) {
     return `This action returns a #${id} video`
   }
 
-  update(id: number, updateVideoDto: UpdateVideoDto) {
-    return `This action updates a #${id} video`
+  findUserVideos(id: string) {
+    return `This action returns all videos for user ${id}`
   }
 
-  remove(id: number) {
+  removeVideo(id: number) {
     return `This action removes a #${id} video`
   }
 }

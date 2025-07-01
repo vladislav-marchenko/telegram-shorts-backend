@@ -20,7 +20,7 @@ export class UserController {
 
   @Get(':id')
   @UseGuards(AuthGuard)
-  getMe(@Req() request: AuthRequest, @Param('id') id: string) {
+  find(@Req() request: AuthRequest, @Param('id') id: string) {
     const userId = id === 'me' ? request.user._id : id
     if (!isValidObjectId(userId)) {
       throw new BadRequestException('Invalid user ID format.')
@@ -31,10 +31,13 @@ export class UserController {
 
   @Patch()
   @UseGuards(AuthGuard)
-  updateProfileInfo(
+  updateDetails(
     @Req() request: AuthRequest,
-    @Body() newData: UpdateProfileDto,
+    @Body() updateProfileDto: UpdateProfileDto,
   ) {
-    return this.userService.updateProfileInfo(request.user._id, newData)
+    return this.userService.updateProfileInfo(
+      request.user._id,
+      updateProfileDto,
+    )
   }
 }

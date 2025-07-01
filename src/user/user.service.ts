@@ -21,19 +21,24 @@ export class UserService {
     return user
   }
 
-  async updateProfileInfo(id: Types.ObjectId, newData: UpdateProfileDto) {
-    if ('telegramId' in newData) {
+  async updateProfileInfo(
+    id: Types.ObjectId,
+    updateProfileDto: UpdateProfileDto,
+  ) {
+    if ('telegramId' in updateProfileDto) {
       throw new BadRequestException('Cannot update telegramId.')
     }
 
-    const user = await this.userModel.findOne({ username: newData.username })
+    const user = await this.userModel.findOne({
+      username: updateProfileDto.username,
+    })
     if (user && !user._id.equals(id)) {
       throw new BadRequestException('Username is already taken.')
     }
 
     const updatedUser = await this.userModel.findByIdAndUpdate(
       { _id: id },
-      { $set: newData },
+      { $set: updateProfileDto },
       { new: true },
     )
     return updatedUser
