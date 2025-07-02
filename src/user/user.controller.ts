@@ -18,10 +18,19 @@ import { AuthRequest } from 'src/types'
 export class UserController {
   constructor(private readonly userService: UserService) {}
 
-  @Get(':id')
+  @Get('me')
   @UseGuards(AuthGuard)
-  find(@Req() request: AuthRequest, @Param('id') id: string) {
-    const userId = id === 'me' ? request.user._id : id
+  findMe(@Req() request: AuthRequest) {
+    const userId = request.user._id
+    if (!isValidObjectId(userId)) {
+      throw new BadRequestException('Invalid user ID format.')
+    }
+
+    return this.userService.getUser(userId)
+  }
+
+  @Get(':id')
+  find(@Param('id') userId: string) {
     if (!isValidObjectId(userId)) {
       throw new BadRequestException('Invalid user ID format.')
     }

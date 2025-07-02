@@ -8,8 +8,14 @@ export class Video {
   @Prop({ immutable: true, required: true })
   userId: Types.ObjectId
 
+  @Prop({ required: true, min: 4, max: 50 })
+  title: string
+
   @Prop({ required: true, match: /^https?:\/\/.+/i })
   url: string
+
+  @Prop({ default: 0 })
+  views: number
 
   @Prop({ default: 0 })
   likesCount: number
