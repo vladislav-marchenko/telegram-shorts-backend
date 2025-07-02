@@ -5,11 +5,12 @@ import {
   Body,
   Param,
   Delete,
-  Query,
   Request,
   UseGuards,
   UseInterceptors,
   UploadedFile,
+  Req,
+  HttpCode,
 } from '@nestjs/common'
 import { VideoService } from './video.service'
 import { UploadVideoDto } from './dto/upload-video.dto'
@@ -33,18 +34,26 @@ export class VideoController {
     return this.videoService.uploadVideo(media, uploadVideoDto, request.user.id)
   }
 
+  @Get('user/me')
+  @UseGuards(AuthGuard)
+  findMyVideos(@Req() request: AuthRequest) {
+    return this.videoService.findUserVideos(request.user._id)
+  }
+
   @Get('user/:id')
-  findUserVideos(@Param('id') id: string) {
-    return this.videoService.findUserVideos(id)
+  findUserVideos(@Param('id') userId: string) {
+    return this.videoService.findUserVideos(userId)
   }
 
   @Get(':id')
-  find(@Param('id') id?: string) {
-    return this.videoService.findVideo(+id)
+  find(@Param('id') id: string) {
+    return this.videoService.findVideo(id)
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.videoService.removeVideo(+id)
+  @UseGuards(AuthGuard)
+  @HttpCode(204)
+  remove(@Param('id') id: string, @Req() request: AuthRequest) {
+    return this.videoService.removeVideo(id, request.user._id)
   }
 }

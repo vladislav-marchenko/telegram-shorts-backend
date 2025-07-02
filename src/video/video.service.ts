@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common'
+import { BadRequestException, Injectable } from '@nestjs/common'
 import { UploadVideoDto } from './dto/upload-video.dto'
 import { InjectModel } from '@nestjs/mongoose'
 import { Model, Types } from 'mongoose'
@@ -27,15 +27,30 @@ export class VideoService {
     return video
   }
 
-  findVideo(id: number) {
-    return `This action returns a #${id} video`
+  async findVideo(id: string) {
+    const video = await this.videoModel.findById(id)
+    if (!video) {
+      throw new BadRequestException('No video found with the given ID.')
+    }
+
+    return video
   }
 
-  findUserVideos(id: string) {
-    return `This action returns all videos for user ${id}`
+  async findUserVideos(userId: string | Types.ObjectId) {
+    const videos = await this.videoModel.find({ userId: userId.toString() })
+    return videos
   }
 
-  removeVideo(id: number) {
-    return `This action removes a #${id} video`
+  async removeVideo(id: string, userId: Types.ObjectId) {
+    const video = await this.videoModel.findById(id)
+    if (!video) {
+      throw new BadRequestException('No video found with the given ID.')
+    }
+
+    if (!userId.equals(video.userId)) {
+      throw new BadRequestException('You are not the owner of this video.')
+    }
+
+    await video.deleteOne()
   }
 }
