@@ -14,6 +14,9 @@ export class Video {
   @Prop({ required: true, match: /^https?:\/\/.+/i })
   url: string
 
+  @Prop({ required: true, match: /^https?:\/\/.+/i })
+  poster: string
+
   @Prop({ default: 0 })
   views: number
 

@@ -45,6 +45,11 @@ export class VideoController {
     return this.videoService.findUserVideos(userId)
   }
 
+  @Get('feed')
+  findFeed() {
+    return this.videoService.findAllVideos()
+  }
+
   @Get(':id')
   find(@Param('id') id: string) {
     return this.videoService.findVideo(id)

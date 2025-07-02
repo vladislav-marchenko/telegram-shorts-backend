@@ -5,6 +5,7 @@ import { MongooseModule } from '@nestjs/mongoose'
 import { Video, VideoSchema } from 'src/schemas/video.schema'
 import { S3Module } from 'src/s3/s3.module'
 import { UserModule } from 'src/user/user.module'
+import { ThumbnailService } from 'src/thumbnail/thumbnail.service'
 
 @Module({
   imports: [
@@ -13,6 +14,6 @@ import { UserModule } from 'src/user/user.module'
     S3Module,
   ],
   controllers: [VideoController],
-  providers: [VideoService],
+  providers: [VideoService, ThumbnailService],
 })
 export class VideoModule {}

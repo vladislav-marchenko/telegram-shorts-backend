@@ -4,12 +4,15 @@ import { InjectModel } from '@nestjs/mongoose'
 import { Model, Types } from 'mongoose'
 import { Video } from 'src/schemas/video.schema'
 import { S3Service } from 'src/s3/s3.service'
+import { ThumbnailService } from 'src/thumbnail/thumbnail.service'
+import * as path from 'path'
 
 @Injectable()
 export class VideoService {
   constructor(
     @InjectModel(Video.name) private videoModel: Model<Video>,
     private s3Service: S3Service,
+    private thumbnailService: ThumbnailService,
   ) {}
 
   async uploadVideo(
@@ -17,10 +20,24 @@ export class VideoService {
     uploadVideoDto: UploadVideoDto,
     userId: Types.ObjectId,
   ) {
-    const url = await this.s3Service.uploadFile(media)
+    const videoURL = await this.s3Service.upload({
+      buffer: media.buffer,
+      extension: path.extname(media.originalname),
+      contentType: media.mimetype,
+    })
+
+    const thumbnail =
+      await this.thumbnailService.extractThumbnailBuffer(videoURL)
+
+    const thumbnailURL = await this.s3Service.upload({
+      buffer: thumbnail,
+      folder: 'posters',
+    })
+
     const video = await this.videoModel.create({
       title: uploadVideoDto.title,
-      url,
+      url: videoURL,
+      poster: thumbnailURL,
       userId,
     })
 
@@ -38,6 +55,11 @@ export class VideoService {
 
   async findUserVideos(userId: string | Types.ObjectId) {
     const videos = await this.videoModel.find({ userId: userId.toString() })
+    return videos
+  }
+
+  async findAllVideos() {
+    const videos = await this.videoModel.find()
     return videos
   }
 
