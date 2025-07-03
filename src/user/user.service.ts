@@ -3,10 +3,30 @@ import { InjectModel } from '@nestjs/mongoose'
 import { Model, Types } from 'mongoose'
 import { User } from 'src/schemas/user.schema'
 import { UpdateProfileDto } from './dto/update-user.dto'
+import { InitData } from '@telegram-apps/init-data-node'
+import { generateUsername } from 'unique-username-generator'
 
 @Injectable()
 export class UserService {
   constructor(@InjectModel(User.name) private userModel: Model<User>) {}
+
+  async createUser(data: InitData['user']) {
+    const { id, username: telegramUsername, first_name, photo_url } = data
+
+    let username = telegramUsername || generateUsername()
+    const isUsernameTaken = await this.userModel.findOne({ username })
+    if (isUsernameTaken) username = generateUsername()
+
+    const user = await this.userModel.create({
+      telegramId: id,
+      username,
+      displayName: first_name,
+      photoURL: photo_url,
+      createdAt: new Date(),
+    })
+
+    return user
+  }
 
   async getUser(id: Types.ObjectId | string) {
     const user = await this.userModel.findById(id, {
