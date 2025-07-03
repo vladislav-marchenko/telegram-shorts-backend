@@ -63,7 +63,7 @@ export class VideoService {
     return videos
   }
 
-  async removeVideo(id: string, userId: Types.ObjectId) {
+  async deleteVideo(id: string, userId: Types.ObjectId) {
     const video = await this.videoModel.findById(id)
     if (!video) {
       throw new BadRequestException('No video found with the given ID.')
@@ -72,6 +72,12 @@ export class VideoService {
     if (!userId.equals(video.userId)) {
       throw new BadRequestException('You are not the owner of this video.')
     }
+
+    const videoKey = `videos/${video.url.split('/').pop()}`
+    await this.s3Service.delete(videoKey)
+
+    const thumbnailKey = `posters/${video.poster.split('/').pop()}`
+    await this.s3Service.delete(thumbnailKey)
 
     await video.deleteOne()
   }

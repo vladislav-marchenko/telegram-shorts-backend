@@ -59,6 +59,6 @@ export class VideoController {
   @UseGuards(AuthGuard)
   @HttpCode(204)
   remove(@Param('id') id: string, @Req() request: AuthRequest) {
-    return this.videoService.removeVideo(id, request.user._id)
+    return this.videoService.deleteVideo(id, request.user._id)
   }
 }

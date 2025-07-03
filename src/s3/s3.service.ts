@@ -3,6 +3,7 @@ import {
   S3Client,
   PutObjectCommand,
   PutObjectCommandInput,
+  DeleteObjectCommand,
 } from '@aws-sdk/client-s3'
 import { v4 as uuid } from 'uuid'
 
@@ -39,5 +40,14 @@ export class S3Service {
 
     await this.client.send(new PutObjectCommand(params))
     return `${process.env.S3_ENDPOINT}/${process.env.S3_BUCKET_NAME}/${key}`
+  }
+
+  async delete(key: string) {
+    await this.client.send(
+      new DeleteObjectCommand({
+        Bucket: process.env.S3_BUCKET_NAME,
+        Key: key,
+      }),
+    )
   }
 }
