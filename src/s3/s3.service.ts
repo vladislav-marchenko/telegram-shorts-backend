@@ -36,6 +36,7 @@ export class S3Service {
       Key: key,
       Body: buffer,
       ContentType: contentType,
+      ContentLength: buffer.byteLength,
     }
 
     await this.client.send(new PutObjectCommand(params))

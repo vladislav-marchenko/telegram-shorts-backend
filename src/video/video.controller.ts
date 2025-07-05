@@ -11,6 +11,7 @@ import {
   UploadedFile,
   Req,
   HttpCode,
+  Query,
 } from '@nestjs/common'
 import { VideoService } from './video.service'
 import { UploadVideoDto } from './dto/upload-video.dto'
@@ -46,8 +47,8 @@ export class VideoController {
   }
 
   @Get('feed')
-  findFeed() {
-    return this.videoService.findAllVideos()
+  findFeed(@Query('page') page: number) {
+    return this.videoService.findAllVideos(page)
   }
 
   @Get(':id')

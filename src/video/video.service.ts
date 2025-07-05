@@ -58,9 +58,16 @@ export class VideoService {
     return videos
   }
 
-  async findAllVideos() {
-    const videos = await this.videoModel.find()
-    return videos
+  async findAllVideos(page: number = 1) {
+    const limit = 5
+    const videos = await this.videoModel
+      .find()
+      .sort({ createdAt: -1 })
+      .skip((page - 1) * limit)
+      .limit(limit)
+
+    const totalCount = await this.videoModel.countDocuments()
+    return { videos, hasMore: page * limit < totalCount }
   }
 
   async deleteVideo(id: string, userId: Types.ObjectId) {
