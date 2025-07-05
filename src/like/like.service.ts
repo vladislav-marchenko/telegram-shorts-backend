@@ -18,7 +18,7 @@ export class LikeService {
     videoId: string
     userId: Types.ObjectId
   }) {
-    const existingLike = await this.likeModel.findOne({ videoId, userId })
+    const existingLike = await this.likeModel.findOne({ videoId, user: userId })
     if (existingLike) {
       throw new BadRequestException('You have already liked this video.')
     }
@@ -30,7 +30,7 @@ export class LikeService {
       throw new BadRequestException('No video found with the given ID.')
     }
 
-    const like = await this.likeModel.create({ videoId, userId })
+    const like = await this.likeModel.create({ videoId, user: userId })
     return like
   }
 
