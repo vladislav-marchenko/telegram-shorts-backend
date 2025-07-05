@@ -53,21 +53,23 @@ export class VideoService {
     return video
   }
 
-  async findUserVideos(userId: string | Types.ObjectId) {
-    const videos = await this.videoModel.find({ userId: userId.toString() })
-    return videos
-  }
-
-  async findAllVideos(page: number = 1) {
-    const limit = 5
+  async findVideos({
+    page = 1,
+    limit = 5,
+    filter,
+  }: {
+    page?: number
+    limit?: number
+    filter?: object
+  }) {
     const videos = await this.videoModel
-      .find()
+      .find(filter)
       .sort({ createdAt: -1 })
       .skip((page - 1) * limit)
       .limit(limit)
 
     const totalCount = await this.videoModel.countDocuments()
-    return { videos, hasMore: page * limit < totalCount }
+    return { videos, hasNext: page * limit < totalCount }
   }
 
   async deleteVideo(id: string, userId: Types.ObjectId) {
