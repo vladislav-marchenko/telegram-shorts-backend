@@ -12,4 +12,4 @@ export class View {
   user: Types.ObjectId
 }
 
-export const LikeSchema = SchemaFactory.createForClass(View)
+export const ViewSchema = SchemaFactory.createForClass(View)

@@ -7,6 +7,7 @@ import { User, UserSchema } from './schemas/user.schema'
 import { UserModule } from './user/user.module'
 import { VideoModule } from './video/video.module'
 import { LikeModule } from './like/like.module';
+import { ViewModule } from './view/view.module';
 
 @Module({
   imports: [
@@ -18,6 +19,7 @@ import { LikeModule } from './like/like.module';
     UserModule,
     VideoModule,
     LikeModule,
+    ViewModule,
   ],
   controllers: [AppController],
   providers: [AppService],
