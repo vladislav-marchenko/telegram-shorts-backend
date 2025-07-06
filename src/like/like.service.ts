@@ -1,6 +1,6 @@
 import { BadRequestException, Injectable } from '@nestjs/common'
-import { Model, Types } from 'mongoose'
-import { InjectModel } from '@nestjs/mongoose'
+import { Connection, Model, Types } from 'mongoose'
+import { InjectConnection, InjectModel } from '@nestjs/mongoose'
 import { Like } from 'src/schemas/like.schema'
 import { Video } from 'src/schemas/video.schema'
 
@@ -9,6 +9,7 @@ export class LikeService {
   constructor(
     @InjectModel(Like.name) private likeModel: Model<Like>,
     @InjectModel(Video.name) private videoModel: Model<Video>,
+    @InjectConnection() private readonly connection: Connection,
   ) {}
 
   async toggleLike({
@@ -18,18 +19,29 @@ export class LikeService {
     videoId: string
     userId: Types.ObjectId
   }) {
-    const isLiked = await this.likeModel.exists({ videoId, user: userId })
-    const video = await this.videoModel.findById(videoId)
-    if (!video) {
-      throw new BadRequestException('No video found with the given ID.')
-    }
+    const session = await this.connection.startSession()
+    session.startTransaction()
 
-    if (isLiked) {
-      await this.likeModel.deleteOne({ videoId, user: userId })
-      await video.updateOne({ $inc: { likesCount: -1 } })
-    } else {
-      await this.likeModel.create({ videoId, user: userId })
-      await video.updateOne({ $inc: { likesCount: +1 } })
+    try {
+      const like = await this.likeModel
+        .findOne({ videoId, user: userId })
+        .session(session)
+
+      if (like) {
+        await this.likeModel.deleteOne({ _id: like._id }).session(session)
+      } else {
+        await this.likeModel.create([{ videoId, user: userId }], { session })
+      }
+
+      await this.videoModel
+        .updateOne({ _id: videoId }, { $inc: { likesCount: !!like ? -1 : 1 } })
+        .session(session)
+
+      await session.commitTransaction()
+      session.endSession()
+    } catch (error) {
+      await session.abortTransaction()
+      session.endSession()
     }
   }
 
