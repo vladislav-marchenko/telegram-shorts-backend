@@ -3,7 +3,6 @@ import {
   Get,
   Post,
   Param,
-  Delete,
   UseGuards,
   Request,
   HttpCode,
@@ -16,10 +15,11 @@ import { AuthRequest } from 'src/types'
 export class LikeController {
   constructor(private readonly likeService: LikeService) {}
 
-  @Post(':videoId')
+  @Post('toggle/:videoId')
+  @HttpCode(204)
   @UseGuards(AuthGuard)
   like(@Request() request: AuthRequest, @Param('videoId') videoId: string) {
-    return this.likeService.likeVideo({ videoId, userId: request.user._id })
+    return this.likeService.toggleLike({ videoId, userId: request.user._id })
   }
 
   @Get(':videoId')
@@ -27,9 +27,12 @@ export class LikeController {
     return this.likeService.findVideoLikes(videoId)
   }
 
-  @Delete(':videoId')
-  @HttpCode(204)
-  unlike(@Request() request: AuthRequest, @Param('videoId') videoId: string) {
-    return this.likeService.unlikeVideo({ videoId, userId: request.user._id })
+  @Get('status/:videoId')
+  @UseGuards(AuthGuard)
+  likeStatus(
+    @Request() request: AuthRequest,
+    @Param('videoId') videoId: string,
+  ) {
+    return this.likeService.getLikeStatus({ videoId, userId: request.user._id })
   }
 }

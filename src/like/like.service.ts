@@ -11,27 +11,26 @@ export class LikeService {
     @InjectModel(Video.name) private videoModel: Model<Video>,
   ) {}
 
-  async likeVideo({
+  async toggleLike({
     videoId,
     userId,
   }: {
     videoId: string
     userId: Types.ObjectId
   }) {
-    const existingLike = await this.likeModel.findOne({ videoId, user: userId })
-    if (existingLike) {
-      throw new BadRequestException('You have already liked this video.')
-    }
-
-    const video = await this.videoModel.findByIdAndUpdate(videoId, {
-      $inc: { likesCount: 1 },
-    })
+    const isLiked = await this.likeModel.exists({ videoId, user: userId })
+    const video = await this.videoModel.findById(videoId)
     if (!video) {
       throw new BadRequestException('No video found with the given ID.')
     }
 
-    const like = await this.likeModel.create({ videoId, user: userId })
-    return like
+    if (isLiked) {
+      await this.likeModel.deleteOne({ videoId, user: userId })
+      await video.updateOne({ $inc: { likesCount: -1 } })
+    } else {
+      await this.likeModel.create({ videoId, user: userId })
+      await video.updateOne({ $inc: { likesCount: +1 } })
+    }
   }
 
   async findVideoLikes(videoId: string) {
@@ -42,25 +41,14 @@ export class LikeService {
     return likes
   }
 
-  async unlikeVideo({
+  async getLikeStatus({
     videoId,
     userId,
   }: {
     videoId: string
     userId: Types.ObjectId
   }) {
-    const existingLike = await this.likeModel.findOne({ videoId, userId })
-    if (!existingLike) {
-      throw new BadRequestException('You have not liked this video yet.')
-    }
-
-    const video = await this.videoModel.findByIdAndUpdate(videoId, {
-      $inc: { likesCount: -1 },
-    })
-    if (!video) {
-      throw new BadRequestException('No video found with the given ID.')
-    }
-
-    await this.likeModel.deleteOne({ videoId, userId })
+    const isLiked = await this.likeModel.exists({ videoId, user: userId })
+    return { isLiked: !!isLiked }
   }
 }
