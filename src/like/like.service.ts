@@ -40,9 +40,9 @@ export class LikeService {
         .session(session)
 
       await session.commitTransaction()
-      session.endSession()
     } catch (error) {
       await session.abortTransaction()
+    } finally {
       session.endSession()
     }
   }

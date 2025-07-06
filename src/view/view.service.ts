@@ -1,11 +1,16 @@
 import { Injectable } from '@nestjs/common'
-import { InjectModel } from '@nestjs/mongoose'
-import { Model, Types } from 'mongoose'
+import { InjectConnection, InjectModel } from '@nestjs/mongoose'
+import { Connection, Model, Types } from 'mongoose'
+import { Video } from 'src/schemas/video.schema'
 import { View } from 'src/schemas/view.schema'
 
 @Injectable()
 export class ViewService {
-  constructor(@InjectModel(View.name) private viewModel: Model<View>) {}
+  constructor(
+    @InjectModel(View.name) private viewModel: Model<View>,
+    @InjectModel(Video.name) private videoModel: Model<Video>,
+    @InjectConnection() private readonly connection: Connection,
+  ) {}
 
   async trackView({
     videoId,
@@ -14,6 +19,31 @@ export class ViewService {
     videoId: string
     userId: Types.ObjectId
   }) {
-    await this.viewModel.create({ video: videoId, user: userId })
+    const session = await this.connection.startSession()
+    session.startTransaction()
+
+    try {
+      const isViewed = await this.viewModel
+        .exists({
+          video: videoId,
+          user: userId,
+        })
+        .session(session)
+
+      if (isViewed) return
+
+      await this.viewModel.create([{ video: videoId, user: userId }], {
+        session,
+      })
+      await this.videoModel
+        .findOneAndUpdate({ _id: videoId }, { $inc: { views: 1 } })
+        .session(session)
+
+      await session.commitTransaction()
+    } catch (error) {
+      await session.abortTransaction()
+    } finally {
+      session.endSession()
+    }
   }
 }
