@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable } from '@nestjs/common'
+import { Injectable } from '@nestjs/common'
 import { Connection, Model, Types } from 'mongoose'
 import { InjectConnection, InjectModel } from '@nestjs/mongoose'
 import { Like } from 'src/schemas/like.schema'
@@ -24,13 +24,15 @@ export class LikeService {
 
     try {
       const like = await this.likeModel
-        .findOne({ videoId, user: userId })
+        .findOne({ video: videoId, user: userId })
         .session(session)
 
       if (like) {
         await this.likeModel.deleteOne({ _id: like._id }).session(session)
       } else {
-        await this.likeModel.create([{ videoId, user: userId }], { session })
+        await this.likeModel.create([{ video: videoId, user: userId }], {
+          session,
+        })
       }
 
       await this.videoModel
@@ -45,12 +47,24 @@ export class LikeService {
     }
   }
 
-  async findVideoLikes(videoId: string) {
+  async findVideoLikes({
+    videoId,
+    page = 1,
+    limit = 10,
+  }: {
+    videoId: string
+    page?: number
+    limit?: number
+  }) {
     const likes = await this.likeModel
-      .find({ videoId })
+      .find({ video: videoId })
       .populate('user', 'displayName username photoURL')
+      .sort({ createdAt: -1 })
+      .limit(limit)
+      .skip((page - 1) * limit)
 
-    return likes
+    const totalCount = await this.likeModel.countDocuments({ video: videoId })
+    return { likes, hasNext: page * limit < totalCount }
   }
 
   async getLikeStatus({
@@ -60,7 +74,10 @@ export class LikeService {
     videoId: string
     userId: Types.ObjectId
   }) {
-    const isLiked = await this.likeModel.exists({ videoId, user: userId })
+    const isLiked = await this.likeModel.exists({
+      video: videoId,
+      user: userId,
+    })
     return { isLiked: !!isLiked }
   }
 }

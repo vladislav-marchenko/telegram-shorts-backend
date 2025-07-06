@@ -6,6 +6,7 @@ import {
   UseGuards,
   Request,
   HttpCode,
+  Query,
 } from '@nestjs/common'
 import { LikeService } from './like.service'
 import { AuthGuard } from 'src/auth/auth.guard'
@@ -23,8 +24,11 @@ export class LikeController {
   }
 
   @Get(':videoId')
-  findVideoLikes(@Param('videoId') videoId: string) {
-    return this.likeService.findVideoLikes(videoId)
+  findVideoLikes(
+    @Param('videoId') videoId: string,
+    @Query('page') page: number,
+  ) {
+    return this.likeService.findVideoLikes({ videoId, page })
   }
 
   @Get('status/:videoId')

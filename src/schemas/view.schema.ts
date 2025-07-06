@@ -1,10 +1,10 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose'
 import { HydratedDocument, Types } from 'mongoose'
 
-export type LikeDocument = HydratedDocument<Like>
+export type ViewDocument = HydratedDocument<View>
 
 @Schema({ timestamps: true })
-export class Like {
+export class View {
   @Prop({ immutable: true, ref: 'Video', required: true })
   video: Types.ObjectId
 
@@ -12,4 +12,4 @@ export class Like {
   user: Types.ObjectId
 }
 
-export const LikeSchema = SchemaFactory.createForClass(Like)
+export const LikeSchema = SchemaFactory.createForClass(View)
