@@ -8,6 +8,7 @@ import { UserModule } from './user/user.module'
 import { VideoModule } from './video/video.module'
 import { LikeModule } from './like/like.module';
 import { ViewModule } from './view/view.module';
+import { CommentModule } from './comment/comment.module';
 
 @Module({
   imports: [
@@ -20,6 +21,7 @@ import { ViewModule } from './view/view.module';
     VideoModule,
     LikeModule,
     ViewModule,
+    CommentModule,
   ],
   controllers: [AppController],
   providers: [AppService],
