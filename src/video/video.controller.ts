@@ -40,14 +40,13 @@ export class VideoController {
   findMyVideos(@Req() request: AuthRequest, @Query('page') page: number) {
     return this.videoService.findVideos({
       page,
-      limit: 10,
       filter: { userId: request.user._id.toString() },
     })
   }
 
   @Get('user/:id')
   findUserVideos(@Param('id') userId: string, @Query('page') page: number) {
-    return this.videoService.findVideos({ page, limit: 10, filter: { userId } })
+    return this.videoService.findVideos({ page, filter: { userId } })
   }
 
   @Get('feed')

@@ -55,7 +55,7 @@ export class VideoService {
 
   async findVideos({
     page = 1,
-    limit = 5,
+    limit = 15,
     filter,
   }: {
     page?: number
