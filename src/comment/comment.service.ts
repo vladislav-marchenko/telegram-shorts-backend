@@ -48,7 +48,10 @@ export class CommentService {
       .limit(limit)
       .skip((page - 1) * limit)
 
-    const totalCount = await this.commentModel.countDocuments()
+    const totalCount = await this.commentModel.countDocuments({
+      videoId,
+      parentId: null,
+    })
     return { comments, hasNext: page * limit < totalCount }
   }
 
