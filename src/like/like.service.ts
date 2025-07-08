@@ -58,7 +58,7 @@ export class LikeService {
   }) {
     const likes = await this.likeModel
       .find({ video: videoId })
-      .populate('user', 'displayName username photoURL')
+      .populate('user')
       .sort({ createdAt: -1 })
       .limit(limit)
       .skip((page - 1) * limit)

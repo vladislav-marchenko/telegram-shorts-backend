@@ -67,7 +67,7 @@ export class CommentService {
     const comments = await this.commentModel
       .find({ videoId, parentId: null })
       .sort({ createdAt: -1 })
-      .populate('user', 'displayName username photoURL')
+      .populate('user')
       .limit(limit)
       .skip((page - 1) * limit)
 
@@ -90,7 +90,7 @@ export class CommentService {
     const comments = await this.commentModel
       .find({ parentId: commentId })
       .sort({ createdAt: -1 })
-      .populate('user', 'displayName username photoURL')
+      .populate('user')
       .limit(limit)
       .skip((page - 1) * limit)
 
