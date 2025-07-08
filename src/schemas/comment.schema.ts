@@ -16,6 +16,9 @@ export class Comment {
 
   @Prop({ required: true, min: 4, max: 350 })
   text: string
+
+  @Prop({ default: 0 })
+  repliesCount: number
 }
 
 export const CommentSchema = SchemaFactory.createForClass(Comment)

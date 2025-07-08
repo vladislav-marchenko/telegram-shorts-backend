@@ -1,13 +1,16 @@
 import { Injectable } from '@nestjs/common'
-import { Model, Types } from 'mongoose'
-import { InjectModel } from '@nestjs/mongoose'
+import { Connection, Model, Types } from 'mongoose'
+import { InjectConnection, InjectModel } from '@nestjs/mongoose'
 import { CommentDto } from './dto/comment.dto'
 import { Comment } from 'src/schemas/comment.schema'
+import { Video } from 'src/schemas/video.schema'
 
 @Injectable()
 export class CommentService {
   constructor(
     @InjectModel(Comment.name) private commentModel: Model<Comment>,
+    @InjectModel(Video.name) private videoModel: Model<Video>,
+    @InjectConnection() private readonly connection: Connection,
   ) {}
 
   async createComment({
@@ -16,20 +19,45 @@ export class CommentService {
     parentId,
     text,
   }: { userId: Types.ObjectId; videoId: string } & CommentDto) {
-    if (parentId) {
-      const parentComment = await this.commentModel.findById(parentId)
-      if (!parentComment) {
-        throw new Error('Comment you are replying to does not exist')
-      }
-    }
+    const session = await this.connection.startSession()
+    session.startTransaction()
 
-    const comment = await this.commentModel.create({
-      user: userId,
-      videoId,
-      parentId,
-      text,
-    })
-    return comment
+    try {
+      if (parentId) {
+        const parentComment = await this.commentModel
+          .findById(parentId)
+          .session(session)
+
+        if (!parentComment) {
+          throw new Error('Comment you are replying to does not exist')
+        }
+
+        await this.commentModel
+          .updateOne({ _id: parentId }, { $inc: { repliesCount: 1 } })
+          .session(session)
+      }
+
+      const comment = await this.commentModel.create(
+        {
+          user: userId,
+          videoId,
+          parentId,
+          text,
+        },
+        { session },
+      )
+
+      await this.videoModel
+        .updateOne({ _id: videoId }, { $inc: { commentsCount: 1 } })
+        .session(session)
+
+      await session.commitTransaction()
+      return comment
+    } catch (error) {
+      await session.abortTransaction()
+    } finally {
+      session.endSession()
+    }
   }
 
   async findComments({
