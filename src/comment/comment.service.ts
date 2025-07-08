@@ -38,12 +38,7 @@ export class CommentService {
       }
 
       const comment = await this.commentModel.create(
-        {
-          user: userId,
-          videoId,
-          parentId,
-          text,
-        },
+        [{ user: userId, videoId, parentId, text }],
         { session },
       )
 
