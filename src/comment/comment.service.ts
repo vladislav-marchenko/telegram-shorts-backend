@@ -13,15 +13,20 @@ export class CommentService {
   async createComment({
     userId,
     videoId,
+    parentId,
     text,
-  }: {
-    userId: Types.ObjectId
-    videoId: string
-    text: string
-  }) {
+  }: { userId: Types.ObjectId; videoId: string } & CommentDto) {
+    if (parentId) {
+      const parentComment = await this.commentModel.findById(parentId)
+      if (!parentComment) {
+        throw new Error('Comment you are replying to does not exist')
+      }
+    }
+
     const comment = await this.commentModel.create({
       user: userId,
       videoId,
+      parentId,
       text,
     })
     return comment
@@ -37,13 +42,35 @@ export class CommentService {
     limit?: number
   }) {
     const comments = await this.commentModel
-      .find({ videoId })
+      .find({ videoId, parentId: null })
       .sort({ createdAt: -1 })
       .populate('user', 'displayName username photoURL')
       .limit(limit)
       .skip((page - 1) * limit)
 
     const totalCount = await this.commentModel.countDocuments()
+    return { comments, hasNext: page * limit < totalCount }
+  }
+
+  async findCommentReplies({
+    commentId,
+    page = 1,
+    limit = 5,
+  }: {
+    commentId: string
+    page?: number
+    limit?: number
+  }) {
+    const comments = await this.commentModel
+      .find({ parentId: commentId })
+      .sort({ createdAt: -1 })
+      .populate('user', 'displayName username photoURL')
+      .limit(limit)
+      .skip((page - 1) * limit)
+
+    const totalCount = await this.commentModel.countDocuments({
+      parentId: commentId,
+    })
     return { comments, hasNext: page * limit < totalCount }
   }
 

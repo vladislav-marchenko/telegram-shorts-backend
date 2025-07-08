@@ -24,11 +24,12 @@ export class CommentController {
   create(
     @Request() request: AuthRequest,
     @Param('videoId') videoId: string,
-    @Body() { text }: CommentDto,
+    @Body() { text, parentId }: CommentDto,
   ) {
     return this.commentService.createComment({
       userId: request.user._id,
       videoId,
+      parentId,
       text,
     })
   }
@@ -36,6 +37,14 @@ export class CommentController {
   @Get(':videoId')
   find(@Param('videoId') videoId: string, @Query('page') page: number) {
     return this.commentService.findComments({ videoId, page })
+  }
+
+  @Get('replies/:commentId')
+  findReplies(
+    @Param('commentId') commentId: string,
+    @Query('page') page: number,
+  ) {
+    return this.commentService.findCommentReplies({ commentId, page })
   }
 
   @Get(':id')
