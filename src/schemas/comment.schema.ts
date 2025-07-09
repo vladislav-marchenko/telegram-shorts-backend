@@ -12,7 +12,7 @@ export class Comment {
   parentId?: Types.ObjectId
 
   @Prop({ immutable: true, ref: 'User', required: true })
-  user: Types.ObjectId
+  user: Types.ObjectId | null
 
   @Prop({ required: true, min: 4, max: 350 })
   text: string

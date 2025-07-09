@@ -9,6 +9,7 @@ import {
   UseGuards,
   Request,
   Query,
+  HttpCode,
 } from '@nestjs/common'
 import { CommentService } from './comment.service'
 import { CommentDto } from './dto/comment.dto'
@@ -62,6 +63,7 @@ export class CommentController {
   }
 
   @Delete(':id')
+  @HttpCode(204)
   @UseGuards(AuthGuard)
   remove(@Request() request: AuthRequest, @Param('id') id: string) {
     return this.commentService.deleteComment({ id, userId: request.user._id })
