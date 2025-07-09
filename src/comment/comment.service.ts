@@ -100,15 +100,47 @@ export class CommentService {
     return { comments, hasNext: page * limit < totalCount }
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} comment`
+  async editComment({
+    id,
+    userId,
+    text,
+  }: { id: string; userId: Types.ObjectId } & CommentDto) {
+    const comment = await this.commentModel.findById(id)
+    if (!comment) {
+      throw new Error('Comment not found')
+    }
+
+    if (!comment.user.equals(userId)) {
+      throw new Error('You are not the owner of this comment')
+    }
+
+    const updatedComment = await comment.updateOne({ text })
+    return updatedComment
   }
 
-  update(id: number, updateCommentDto: CommentDto) {
-    return `This action updates a #${id} comment`
-  }
+  async deleteComment({ id, userId }: { id: string; userId: Types.ObjectId }) {
+    const session = await this.connection.startSession()
+    session.startTransaction()
 
-  remove(id: number) {
-    return `This action removes a #${id} comment`
+    try {
+      const comment = await this.commentModel.findById(id).session(session)
+      if (!comment) {
+        throw new Error('Comment not found')
+      }
+
+      if (!comment.user.equals(userId)) {
+        throw new Error('You are not the owner of this comment')
+      }
+
+      await this.videoModel
+        .updateOne({ _id: comment.videoId }, { $inc: { commentsCount: -1 } })
+        .session(session)
+      await comment.deleteOne().session(session)
+      session.commitTransaction()
+    } catch (error) {
+      session.abortTransaction()
+    } finally {
+      session.endSession()
+    }
   }
 }

@@ -47,18 +47,23 @@ export class CommentController {
     return this.commentService.findCommentReplies({ commentId, page })
   }
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.commentService.findOne(+id)
-  }
-
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateCommentDto: CommentDto) {
-    return this.commentService.update(+id, updateCommentDto)
+  @UseGuards(AuthGuard)
+  update(
+    @Request() request: AuthRequest,
+    @Param('id') id: string,
+    @Body() { text }: CommentDto,
+  ) {
+    return this.commentService.editComment({
+      id,
+      userId: request.user._id,
+      text,
+    })
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.commentService.remove(+id)
+  @UseGuards(AuthGuard)
+  remove(@Request() request: AuthRequest, @Param('id') id: string) {
+    return this.commentService.deleteComment({ id, userId: request.user._id })
   }
 }
