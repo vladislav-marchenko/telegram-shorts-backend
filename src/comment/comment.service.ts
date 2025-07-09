@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common'
+import { BadRequestException, Injectable } from '@nestjs/common'
 import { Connection, Model, Types } from 'mongoose'
 import { InjectConnection, InjectModel } from '@nestjs/mongoose'
 import { CommentDto } from './dto/comment.dto'
@@ -29,7 +29,13 @@ export class CommentService {
           .session(session)
 
         if (!parentComment) {
-          throw new Error('Comment you are replying to does not exist')
+          throw new BadRequestException(
+            'Comment you are replying to does not exist',
+          )
+        }
+
+        if (!parentComment.user) {
+          throw new BadRequestException('You cannot reply to a deleted comment')
         }
 
         await this.commentModel
@@ -50,6 +56,7 @@ export class CommentService {
       return comment
     } catch (error) {
       await session.abortTransaction()
+      throw error
     } finally {
       session.endSession()
     }
@@ -107,11 +114,11 @@ export class CommentService {
   }: { id: string; userId: Types.ObjectId } & CommentDto) {
     const comment = await this.commentModel.findById(id)
     if (!comment) {
-      throw new Error('Comment not found')
+      throw new BadRequestException('Comment not found')
     }
 
     if (!comment.user.equals(userId)) {
-      throw new Error('You are not the owner of this comment')
+      throw new BadRequestException('You are not the owner of this comment')
     }
 
     const updatedComment = await comment.updateOne({ text })
@@ -125,11 +132,11 @@ export class CommentService {
     try {
       const comment = await this.commentModel.findById(id).session(session)
       if (!comment) {
-        throw new Error('Comment not found')
+        throw new BadRequestException('Comment not found')
       }
 
       if (!comment.user.equals(userId)) {
-        throw new Error('You are not the owner of this comment')
+        throw new BadRequestException('You are not the owner of this comment')
       }
 
       const replies = await this.commentModel
@@ -155,6 +162,7 @@ export class CommentService {
       await session.commitTransaction()
     } catch (error) {
       await session.abortTransaction()
+      throw error
     } finally {
       session.endSession()
     }
