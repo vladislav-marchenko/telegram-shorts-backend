@@ -132,25 +132,29 @@ export class CommentService {
         throw new Error('You are not the owner of this comment')
       }
 
-      const subComments = await this.commentModel.find({
-        parentId: comment._id,
-      })
+      const replies = await this.commentModel
+        .find({ parentId: comment._id.toString() })
+        .session(session)
 
-      if (subComments) {
-        return await comment.updateOne({
-          text: 'This comment has been deleted',
-          user: null,
-        })
-      } else {
-        await this.videoModel
-          .updateOne({ _id: comment.videoId }, { $inc: { commentsCount: -1 } })
-          .session(session)
-        await comment.deleteOne().session(session)
+      if (!!replies.length) {
+        const updatedComment = await this.commentModel.findByIdAndUpdate(
+          comment._id,
+          { text: 'This comment has been deleted', user: null },
+          { new: true, session },
+        )
+
+        await session.commitTransaction()
+        return updatedComment
       }
 
-      session.commitTransaction()
+      await this.videoModel
+        .updateOne({ _id: comment.videoId }, { $inc: { commentsCount: -1 } })
+        .session(session)
+
+      await comment.deleteOne({ session })
+      await session.commitTransaction()
     } catch (error) {
-      session.abortTransaction()
+      await session.abortTransaction()
     } finally {
       session.endSession()
     }
