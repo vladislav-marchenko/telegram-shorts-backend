@@ -63,6 +63,7 @@ export class CommentController {
   }
 
   @Delete(':id')
+  @HttpCode(204)
   @UseGuards(AuthGuard)
   remove(@Request() request: AuthRequest, @Param('id') id: string) {
     return this.commentService.deleteComment({ id, userId: request.user._id })

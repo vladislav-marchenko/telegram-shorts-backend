@@ -135,6 +135,10 @@ export class CommentService {
         throw new BadRequestException('Comment not found')
       }
 
+      if (!comment.user) {
+        throw new BadRequestException('Comment has already been deleted')
+      }
+
       if (!comment.user.equals(userId)) {
         throw new BadRequestException('You are not the owner of this comment')
       }
@@ -144,22 +148,29 @@ export class CommentService {
         .session(session)
 
       if (!!replies.length) {
-        const updatedComment = await this.commentModel.findByIdAndUpdate(
+        await this.commentModel.findByIdAndUpdate(
           comment._id,
           { text: 'This comment has been deleted', user: null },
           { new: true, session },
         )
 
         await session.commitTransaction()
-        return updatedComment
+      } else {
+        await this.videoModel.findByIdAndUpdate(
+          comment.videoId,
+          { $inc: { commentsCount: -1 } },
+          { session },
+        )
+
+        if (comment.parentId) {
+          await this.commentModel
+            .findByIdAndUpdate(comment.parentId, { $inc: { repliesCount: -1 } })
+            .session(session)
+        }
+
+        await comment.deleteOne().session(session)
+        await session.commitTransaction()
       }
-
-      await this.videoModel
-        .updateOne({ _id: comment.videoId }, { $inc: { commentsCount: -1 } })
-        .session(session)
-
-      await comment.deleteOne({ session })
-      await session.commitTransaction()
     } catch (error) {
       await session.abortTransaction()
       throw error
