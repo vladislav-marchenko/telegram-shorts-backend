@@ -24,15 +24,16 @@ export class LikeService {
 
     try {
       const like = await this.likeModel
-        .findOne({ video: videoId, user: userId })
+        .findOne({ video: new Types.ObjectId(videoId), user: userId })
         .session(session)
 
       if (like) {
         await this.likeModel.deleteOne({ _id: like._id }).session(session)
       } else {
-        await this.likeModel.create([{ video: videoId, user: userId }], {
-          session,
-        })
+        await this.likeModel.create(
+          [{ video: new Types.ObjectId(videoId), user: userId }],
+          { session },
+        )
       }
 
       await this.videoModel
@@ -58,7 +59,7 @@ export class LikeService {
     limit?: number
   }) {
     const likes = await this.likeModel
-      .find({ video: videoId })
+      .find({ video: new Types.ObjectId(videoId) })
       .populate('user')
       .sort({ createdAt: -1 })
       .limit(limit)
@@ -76,7 +77,7 @@ export class LikeService {
     userId: Types.ObjectId
   }) {
     const isLiked = await this.likeModel.exists({
-      video: videoId,
+      video: new Types.ObjectId(videoId),
       user: userId,
     })
     return { isLiked: !!isLiked }

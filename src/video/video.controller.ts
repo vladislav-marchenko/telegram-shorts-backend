@@ -39,24 +39,43 @@ export class VideoController {
   @UseGuards(AuthGuard)
   findMyVideos(@Req() request: AuthRequest, @Query('page') page: number) {
     return this.videoService.findVideos({
+      userId: request.user._id,
       page,
       filter: { userId: request.user._id.toString() },
     })
   }
 
   @Get('user/:id')
-  findUserVideos(@Param('id') userId: string, @Query('page') page: number) {
-    return this.videoService.findVideos({ page, filter: { userId } })
+  @UseGuards(AuthGuard)
+  findUserVideos(
+    @Request() request: AuthRequest,
+    @Param('id') userId: string,
+    @Query('page') page: number,
+  ) {
+    return this.videoService.findVideos({
+      userId: request.user._id,
+      page,
+      filter: { userId },
+    })
   }
 
   @Get('feed')
-  findFeed(@Query('page') page: number) {
-    return this.videoService.findVideos({ page })
+  @UseGuards(AuthGuard)
+  findFeed(@Request() request: AuthRequest, @Query('page') page: number) {
+    return this.videoService.findVideos({
+      userId: request.user._id,
+      limit: 5,
+      page,
+    })
   }
 
   @Get(':id')
-  find(@Param('id') id: string) {
-    return this.videoService.findVideo(id)
+  @UseGuards(AuthGuard)
+  find(@Request() request: AuthRequest, @Param('id') id: string) {
+    return this.videoService.findVideo({
+      videoId: id,
+      userId: request.user._id,
+    })
   }
 
   @Delete(':id')
