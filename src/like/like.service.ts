@@ -68,18 +68,4 @@ export class LikeService {
     const totalCount = await this.likeModel.countDocuments({ video: videoId })
     return { likes, hasNext: page * limit < totalCount }
   }
-
-  async getLikeStatus({
-    videoId,
-    userId,
-  }: {
-    videoId: string
-    userId: Types.ObjectId
-  }) {
-    const isLiked = await this.likeModel.exists({
-      video: new Types.ObjectId(videoId),
-      user: userId,
-    })
-    return { isLiked: !!isLiked }
-  }
 }

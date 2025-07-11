@@ -30,13 +30,4 @@ export class LikeController {
   ) {
     return this.likeService.findVideoLikes({ videoId, page })
   }
-
-  @Get('status/:videoId')
-  @UseGuards(AuthGuard)
-  likeStatus(
-    @Request() request: AuthRequest,
-    @Param('videoId') videoId: string,
-  ) {
-    return this.likeService.getLikeStatus({ videoId, userId: request.user._id })
-  }
 }
