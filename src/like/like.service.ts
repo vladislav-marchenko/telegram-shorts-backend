@@ -37,7 +37,10 @@ export class LikeService {
       }
 
       await this.videoModel
-        .updateOne({ _id: videoId }, { $inc: { likesCount: !!like ? -1 : 1 } })
+        .updateOne(
+          { _id: new Types.ObjectId(videoId) },
+          { $inc: { likesCount: !!like ? -1 : 1 } },
+        )
         .session(session)
 
       await session.commitTransaction()
@@ -65,7 +68,9 @@ export class LikeService {
       .limit(limit)
       .skip((page - 1) * limit)
 
-    const totalCount = await this.likeModel.countDocuments({ video: videoId })
+    const totalCount = await this.likeModel.countDocuments({
+      video: new Types.ObjectId(videoId),
+    })
     return { likes, hasNext: page * limit < totalCount }
   }
 }

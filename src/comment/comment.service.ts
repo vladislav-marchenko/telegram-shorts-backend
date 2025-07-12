@@ -44,12 +44,22 @@ export class CommentService {
       }
 
       const comment = await this.commentModel.create(
-        [{ user: userId, videoId, parentId, text }],
+        [
+          {
+            user: userId,
+            videoId: new Types.ObjectId(videoId),
+            parentId,
+            text,
+          },
+        ],
         { session },
       )
 
       await this.videoModel
-        .updateOne({ _id: videoId }, { $inc: { commentsCount: 1 } })
+        .updateOne(
+          { _id: new Types.ObjectId(videoId) },
+          { $inc: { commentsCount: 1 } },
+        )
         .session(session)
 
       await session.commitTransaction()
@@ -72,14 +82,14 @@ export class CommentService {
     limit?: number
   }) {
     const comments = await this.commentModel
-      .find({ videoId, parentId: null })
+      .find({ videoId: new Types.ObjectId(videoId), parentId: null })
       .sort({ createdAt: -1 })
       .populate('user')
       .limit(limit)
       .skip((page - 1) * limit)
 
     const totalCount = await this.commentModel.countDocuments({
-      videoId,
+      videoId: new Types.ObjectId(videoId),
       parentId: null,
     })
     return { comments, hasNext: page * limit < totalCount }

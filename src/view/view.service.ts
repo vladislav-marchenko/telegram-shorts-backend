@@ -25,18 +25,22 @@ export class ViewService {
     try {
       const isViewed = await this.viewModel
         .exists({
-          video: videoId,
+          video: new Types.ObjectId(videoId),
           user: userId,
         })
         .session(session)
 
       if (isViewed) return
 
-      await this.viewModel.create([{ video: videoId, user: userId }], {
-        session,
-      })
+      await this.viewModel.create(
+        [{ video: new Types.ObjectId(videoId), user: userId }],
+        { session },
+      )
       await this.videoModel
-        .findOneAndUpdate({ _id: videoId }, { $inc: { views: 1 } })
+        .findOneAndUpdate(
+          { _id: new Types.ObjectId(videoId) },
+          { $inc: { views: 1 } },
+        )
         .session(session)
 
       await session.commitTransaction()
